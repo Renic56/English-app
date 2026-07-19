@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瞬間構文トレーニング</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --cleared-card-bg: #dbf7e6;
+            --cleared-border-color: #a7f3d0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card.cleared {
+            background: var(--cleared-card-bg);
+            border-color: var(--cleared-border-color);
+        }
+
+        .card.cleared::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--success-color);
+        }
+
+        .tag {
+            display: inline-block;
+            background: #e0e7ff;
+            color: var(--primary-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .card.cleared .tag {
+            background: #a7f3d0;
+            color: #047857;
+        }
+
+        .japanese {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .english-box {
+            background: #f9fafb;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            min-height: 40px;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .card.cleared .english-box {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: var(--cleared-border-color);
+        }
+
+        .alternative-text {
+            font-size: 0.95rem;
+            color: #4b5563;
+            font-weight: normal;
+            border-top: 1px dashed #e5e7eb;
+            width: 100%;
+            padding-top: 6px;
+            margin-top: 4px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ボタン群 */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-warning { background: var(--warning-color); color: white; }
+
+        .action-init-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .action-init-group .btn {
+            margin-bottom: 0;
+        }
+        .btn-hint-layout {
+            width: 35%;
+        }
+        .btn-main-layout {
+            flex-grow: 1;
+        }
+
+        .btn-mini {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #6b7280;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: normal;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-mini:hover {
+            background: #f3f4f6;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .action-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .history-section {
+            margin-top: 12px;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 12px;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .card.cleared .history-section {
+            border-top-color: var(--cleared-border-color);
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .stamp {
+            background: #ffffff;
+            color: #1f2937;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            border: 1px solid var(--cleared-border-color);
+            font-weight: 500;
+        }
+
+        /* 追加フォーム */
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ 瞬間構文トレーニング</h1>
+
+    <div id="card-container"></div>
+
+    <div class="form-card">
+        <h3 style="margin-top:0; margin-bottom:12px; color:var(--text-color);">➕ 新しい構文を追加</h3>
+        <div class="form-group">
+            <label>使われている構文 (例: find it [形容詞] to do)</label>
+            <input type="text" id="input-title" placeholder="構文を入力">
+        </div>
+        <div class="form-group">
+            <label>日本語の問題文</label>
+            <input type="text" id="input-japanese" placeholder="日本語訳を入力">
+        </div>
+        <div class="form-group">
+            <label>解答の英語例文</label>
+            <input type="text" id="input-english" placeholder="英語の例文を入力">
+        </div>
+        <div class="form-group">
+            <label>別の言い方・別解 (任意)</label>
+            <input type="text" id="input-alternative" placeholder="別の表現があれば入力">
+        </div>
+        <button class="btn btn-primary" onclick="addPhrase()">アプリに保存する</button>
+    </div>
+</div>
+
+<script>
+    // 💡 初級編(01〜30) ＋ 中上級編(01〜30) の全128例文を完全網羅！
+    const defaultPhrases = [
+        /* === 初級編 (01 - 30) === */
+        { id: 1, title: "It's 形容詞 to do (初級01)", japanese: "毎日運動することは重要だ。", english: "It's important to exercise every day.", alternative: "", history: [] },
+        { id: 2, title: "It's 形容詞 to do (初級01)", japanese: "英語を勉強するのは楽しい。", english: "It's fun to study English.", alternative: "", history: [] },
+        { id: 3, title: "It's 形容詞 that 文 (初級02)", japanese: "そんなに英語を上手に話せるなんてすごいね。", english: "It's impressive that you speak English so well.", alternative: "", history: [] },
+        { id: 4, title: "It's 形容詞 that 文 (初級02)", japanese: "こんなに早く終わらせるなんてびっくりだよ。", english: "It's surprising that you finished this so quickly.", alternative: "", history: [] },
+        { id: 5, title: "It's 形容詞 that 文 (初級02)", japanese: "そんなこと言うなんて面白いね。", english: "It's interesting that you said that.", alternative: "", history: [] },
+        { id: 6, title: "X is so 形容詞 that 文 (初級03)", japanese: "美味しすぎて止まらなかった。", english: "It was so good that I couldn't stop eating.", alternative: "", history: [] },
+        { id: 7, title: "X is so 形容詞 that 文 (初級03)", japanese: "めっちゃ高かったから買わなかった。", english: "It was so expensive that I didn't buy it.", alternative: "", history: [] },
+        { id: 8, title: "X is too 形容詞 to do (初級04)", japanese: "疲れすぎて出掛けられない。", english: "I'm too tired to go out.", alternative: "", history: [] },
+        { id: 9, title: "X is 形容詞 enough to do (初級05)", japanese: "人前で話せるほど英語に自信がない。", english: "I'm not confident enough to speak English in public.", alternative: "", history: [] },
+        { id: 10, title: "X is 形容詞 enough to do (初級05)", japanese: "YouTube見れるくらいインターネット速いよ。", english: "It's fast enough to watch YouTube.", alternative: "", history: [] },
+        { id: 11, title: "find it 形容詞 to do (初級06)", japanese: "英語を勉強するのはすごく面白いと思う。", english: "I find it really interesting to study English.", alternative: "I find it real interesting to study English.", history: [] },
+        { id: 12, title: "find it 形容詞 to do (初級06)", japanese: "人前で話すのはすごく難しいと思う。", english: "I find it very difficult to speak in public.", alternative: "I find it really hard to speak in public.", history: [] },
+        { id: 13, title: "so that (初級07)", japanese: "海外旅行できるように節約してる。", english: "I'm trying to save money so that I can travel abroad.", alternative: "", history: [] },
+        { id: 14, title: "so that (初級07)", japanese: "もっと友達を作れるように英語を勉強したい。", english: "I want to study English so that I can make more friends.", alternative: "", history: [] },
+        { id: 15, title: "否定文 + at all (初級08)", japanese: "英語が全く好きじゃない。", english: "I don't like English at all.", alternative: "", history: [] },
+        { id: 16, title: "否定文 + at all (初級08)", japanese: "全く驚いてないよ。", english: "I'm not surprised at all.", alternative: "", history: [] },
+        { id: 17, title: "X is the same as Y (初級09)", japanese: "携帯、私と同じだ。iPhone 14だよね?", english: "Your phone is the same as mine. It's iPhone 14, right?", alternative: "", history: [] },
+        { id: 18, title: "X is the same as Y (初級09)", japanese: "ファッションの好み、私と同じだね。", english: "Your taste in fashion is the same as mine.", alternative: "", history: [] },
+        { id: 19, title: "Just because doesn't mean 文 (初級10)", japanese: "見た目が良いからといって美味しいとは限らない。", english: "Just because it looks good doesn't mean it's delicious.", alternative: "", history: [] },
+        { id: 20, title: "Just because doesn't mean 文 (初級10)", japanese: "いつも笑顔だからといって親切な人とは限らない。", english: "Just because he smiles a lot doesn't mean he's kind.", alternative: "", history: [] },
+        { id: 21, title: "X is not necessarily 形容詞 (初級11)", japanese: "高い服が必ずしもオシャレとは限らない。", english: "Expensive clothes are not necessarily fashionable.", alternative: "", history: [] },
+        { id: 22, title: "X is not necessarily 形容詞 (初級11)", japanese: "英語が喋れるからといって必ずしも賢いわけではない。", english: "Being able to speak English doesn't necessarily mean they are smart.", alternative: "", history: [] },
+        { id: 23, title: "X used to do (初級12)", japanese: "昔はよくサッカーしていた。", english: "I used to play soccer.", alternative: "", history: [] },
+        { id: 24, title: "X used to do (初級12)", japanese: "昔は東京に住んでいた。", english: "I used to live in Tokyo.", alternative: "", history: [] },
+        { id: 25, title: "X used to do (初級12)", japanese: "昔は20分かかっていた。", english: "It used to take 20 minutes.", alternative: "", history: [] },
+        { id: 26, title: "X is used to 名詞/動名詞 (初級13)", japanese: "もう英語を話すのに慣れてるよ。", english: "I'm already used to speaking English.", alternative: "", history: [] },
+        { id: 27, title: "X is used to 名詞/動名詞 (初級13)", japanese: "昔はめっちゃ不安だったけどもう慣れてるよ。", english: "I used to be very nervous, but I'm already used to it.", alternative: "", history: [] },
+        { id: 28, title: "X is not as 形容詞 as I expected (初級14)", japanese: "期待してたほど美味しくなかった。", english: "The food was not as delicious as I expected.", alternative: "", history: [] },
+        { id: 29, title: "X is not as 形容詞 as I expected (初級14)", japanese: "期待してたほど彼は英語を流暢に話さなかった。", english: "He didn't speak English as fluently as I expected.", alternative: "", history: [] },
+        { id: 30, title: "spend 時間 doing (初級15)", japanese: "普段、8時間くらい英語の勉強してる。", english: "I usually spend about 8 hours studying English.", alternative: "", history: [] },
+        { id: 31, title: "spend 時間 doing (初級15)", japanese: "昨日は2時間ギターの練習をした。", english: "I spent 2 hours practicing the guitar yesterday.", alternative: "", history: [] },
+        { id: 32, title: "feel like doing (初級16)", japanese: "今日はエクササイズしたい気分だ。", english: "I feel like working out today.", alternative: "", history: [] },
+        { id: 33, title: "feel like doing (初級16)", japanese: "今日は何もしたくない気分だ。", english: "I don't feel like doing anything today.", alternative: "", history: [] },
+        { id: 34, title: "文 as soon as 文 (初級17)", japanese: "ここに着いたらすぐに電話して。", english: "Give me a call as soon as you get here.", alternative: "", history: [] },
+        { id: 35, title: "文 as soon as 文 (初級17)", japanese: "ミーティングが終わったらすぐに送るよ。", english: "I'll send it to you as soon as I finish the meeting.", alternative: "", history: [] },
+        { id: 36, title: "I don't know if 文 (初級18)", japanese: "彼が来るかどうかわからない。", english: "I don't know if he's coming.", alternative: "", history: [] },
+        { id: 37, title: "I don't know if 文 (初級18)", japanese: "あの店にWi-Fiがあるかどうかわからない。", english: "I don't know if they have Wi-Fi.", alternative: "", history: [] },
+        { id: 38, title: "I wonder if 文 (初級19)", japanese: "彼は来るのかな。", english: "I wonder if he's coming.", alternative: "", history: [] },
+        { id: 39, title: "I wonder if 文 (初級19)", japanese: "あの店にWi-Fiあるのかな。", english: "I wonder if they have Wi-Fi.", alternative: "", history: [] },
+        { id: 40, title: "It's been 時間 since 文 (初級20)", japanese: "彼に最後に会ってから2年になる。", english: "It's been 2 years since I last saw him.", alternative: "", history: [] },
+        { id: 41, title: "It's been 時間 since 文 (初級20)", japanese: "久しぶりだね。", english: "It's been a while.", alternative: "It's been a long time.", history: [] },
+        { id: 42, title: "It takes 時間 to do (初級21)", japanese: "あそこに着くのに大体40分かかる。", english: "It takes about 40 minutes to get there.", alternative: "", history: [] },
+        { id: 43, title: "It takes 時間 to do (初級21)", japanese: "どのくらい時間かかったの?", english: "How long did it take?", alternative: "", history: [] },
+        { id: 44, title: "It takes 時間 to do (初級21)", japanese: "私がそれをやるのには大体40分くらいかかった。", english: "It took me about 40 minutes.", alternative: "", history: [] },
+        { id: 45, title: "How about + 文 (初級22)", japanese: "あなたがそれをやるのはどう?", english: "How about you do it?", alternative: "", history: [] },
+        { id: 46, title: "How about + 文 (初級22)", japanese: "パーティーを一緒に主催するのはどう?", english: "How about we host a party ?", alternative: "", history: [] },
+        { id: 47, title: "How about + 文 (初級22)", japanese: "一緒にやるのはどう?", english: "How about we do it together ?", alternative: "", history: [] },
+        { id: 48, title: "have X do (初級23)", japanese: "それはたかにやってもらうよ。", english: "I'll have Taka do it.", alternative: "", history: [] },
+        { id: 49, title: "get X to do (初級24)", japanese: "それはたかにやってもらうよ。", english: "I'll get Taka to do it.", alternative: "", history: [] },
+        { id: 50, title: "make X do (初級25)", japanese: "それはたかにやらせるよ。", english: "I'll make Taka do it.", alternative: "", history: [] },
+        { id: 51, title: "make X do (初級25)", japanese: "考えさせられた。", english: "It made me think.", alternative: "", history: [] },
+        { id: 52, title: "make X do (初級25)", japanese: "なぜ日本に来たんですか?", english: "What made you come to Japan?", alternative: "", history: [] },
+        { id: 53, title: "let X do (初級26)", japanese: "それは彼にやらせてあげるよ。", english: "I'll let him do it.", alternative: "", history: [] },
+        { id: 54, title: "let X do (初級26)", japanese: "わかったら教えてあげるね。", english: "I'll let you know when I figure out.", alternative: "", history: [] },
+        { id: 55, title: "let X do (初級26)", japanese: "手伝わせて。", english: "Let me help you.", alternative: "Let me do it for you.", history: [] },
+        { id: 56, title: "make X 形容詞 (初級27)", japanese: "彼を喜ばせたい。", english: "I want to make him happy.", alternative: "", history: [] },
+        { id: 57, title: "make X 形容詞 (初級27)", japanese: "世界をもっと良くしたい。", english: "I want to make the world a better place.", alternative: "", history: [] },
+        { id: 58, title: "make X 形容詞 (初級27)", japanese: "人生が楽になるわ。", english: "That makes my life easier.", alternative: "", history: [] },
+        { id: 59, title: "see X doing (初級28)", japanese: "昨日、彼が歌っているのを見た。", english: "I saw him singing yesterday.", alternative: "", history: [] },
+        { id: 60, title: "see X doing (初級28)", japanese: "街で多くの人が歩いているのを見た。", english: "I saw a lot of people walking in the city.", alternative: "", history: [] },
+        { id: 61, title: "hear X doing (初級29)", japanese: "多くの人がそのことについて話しているのを聞いた。", english: "I heard so many people talking about it.", alternative: "", history: [] },
+        { id: 62, title: "hear X doing (初級29)", japanese: "彼が英語を話しているのを聞いたことがない。", english: "I've never heard him speaking English.", alternative: "", history: [] },
+        { id: 63, title: "what 主語 動詞 (初級30)", japanese: "私が好きなのはこれです。", english: "What I like about it is this.", alternative: "", history: [] },
+        { id: 64, title: "what 主語 動詞 (初級30)", japanese: "そういう意味じゃないよ。", english: "That's not what I mean.", alternative: "", history: [] },
+
+        /* === 💡中・上級編 (01 - 30) === */
+        { id: 65, title: "you know how 文 (中上級01)", japanese: "ほら、彼っていつも幸せそうじゃん?", english: "You know how he seems really happy?", alternative: "", history: [] },
+        { id: 66, title: "you know how 文 (中上級01)", japanese: "ほら、私っていつもこういうことに関して文句言ってるじゃん?", english: "You know how I'm always complaining about this kind of stuff ?", alternative: "", history: [] },
+        { id: 67, title: "you know how 文 (中上級01)", japanese: "ほら、私ずっと新しいジャケットを探してるって言ってたじゃん?", english: "You know how I've been looking for a new jacket ?", alternative: "", history: [] },
+        { id: 68, title: "If you could do, that would be 形容詞 (中上級02)", japanese: "もしそのレポートを今日中に書き終えてくれたら、最高だよ。", english: "If you could finish writing that report by the end of today, that would be great.", alternative: "", history: [] },
+        { id: 69, title: "If you could do, that would be 形容詞 (中上級02)", japanese: "もし来れるなら、めちゃくちゃ嬉しい。", english: "If you could come, that would be awesome", alternative: "", history: [] },
+        { id: 70, title: "If you could do, that would be 形容詞 (中上級02)", japanese: "もしそれできるならめちゃくちゃすごいよ。", english: "If you could do that, that would be impressive", alternative: "", history: [] },
+        { id: 71, title: "for the first time in 時間 (中上級03)", japanese: "5年ぶりにテニスをした。", english: "I played tennis for the first time in 5 years.", alternative: "", history: [] },
+        { id: 72, title: "for the first time in 時間 (中上級03)", japanese: "10年ぶりに大阪に来た。", english: "I came to Osaka for the first time in 10 years.", alternative: "", history: [] },
+        { id: 73, title: "for the first time in 時間 (中上級03)", japanese: "久しぶりに新しいジャケットを買った。", english: "I bought a new jacket for the first time in ages.", alternative: "", history: [] },
+        { id: 74, title: "for the first time in 時間 (中上級03)", japanese: "久しぶりにここに来た。", english: "I came here for the first time in ages.", alternative: "", history: [] },
+        { id: 75, title: "what if 文 (中上級04)", japanese: "明日、雨降ったらどうする?", english: "What if it rains tomorrow?", alternative: "", history: [] },
+        { id: 76, title: "what if 文 (中上級04)", japanese: "もし好きじゃなかったらどうする?", english: "What if they don't like it?", alternative: "", history: [] },
+        { id: 77, title: "what if 文 (中上級04)", japanese: "もし利益がゼロだったらどうする?", english: "What if the profit was zero ?", alternative: "", history: [] },
+        { id: 78, title: "That's why 文 (中上級05)", japanese: "だからそれ嫌いなんだよ。", english: "That's why I don't like it.", alternative: "", history: [] },
+        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
+        { id: 80, title: "That's why 文 (中上級05)", japanese: "だから今英語の勉強をするのはすごく大事なんだよ。", english: "That's why it's very important to study English now.", alternative: "", history: [] },
+        { id: 81, title: "It feels like (中上級06)", japanese: "何か起こりそうな気がする。", english: "It feels like something's going to happen.", alternative: "", history: [] },
+        { id: 82, title: "It feels like (中上級06)", japanese: "雨が降りそうな気がする。", english: "It feels like it's going to rain.", alternative: "", history: [] },
+        { id: 83, title: "It feels like (中上級06)", japanese: "このプレゼン、なんか変な気がする。", english: "It feels like something is off about this presentation.", alternative: "", history: [] },
+        { id: 84, title: "It feels like (中上級06)", japanese: "彼、最近ダラダラしてる気がする。", english: "It feels like he's been just slacking off.", alternative: "", history: [] },
+        { id: 85, title: "There's no way 文 (中上級07)", japanese: "彼女が50歳なんてありえない。めちゃくちゃ若く見える。", english: "There's no way she's 50. She looks so young.", alternative: "", history: [] },
+        { id: 86, title: "There's no way 文 (中上級07)", japanese: "彼がそんなこと言ったなんてありえない。", english: "There's no way he said that.", alternative: "", history: [] },
+        { id: 87, title: "There's no way 文 (中上級07)", japanese: "もう2時なんてありえない。やばい。", english: "There's no way it's already 2 am. Crazy.", alternative: "", history: [] },
+        { id: 88, title: "I'm not sure if 文 (中上級08)", japanese: "彼が来るかどうか分からない。", english: "I'm not sure if he is coming.", alternative: "", history: [] },
+        { id: 89, title: "I'm not sure if 文 (中上級08)", japanese: "それが本当かどうか分からない。", english: "I'm not sure if it's true.", alternative: "", history: [] },
+        { id: 90, title: "I'm not sure if 文 (中上級08)", japanese: "ごめん、間に合うかどうか分からない。", english: "Sorry, I'm not sure if I can make it.", alternative: "", history: [] },
+        { id: 91, title: "What's the point of doing (中上級09)", japanese: "それやって何の意味があるの?", english: "What's the point of doing that?", alternative: "", history: [] },
+        { id: 92, title: "What's the point of doing (中上級09)", japanese: "筋トレすることに何の意味があるの?", english: "What's the point of working out?", alternative: "", history: [] },
+        { id: 93, title: "What's the point of doing (中上級09)", japanese: "英語の勉強することに何の意味があるの?", english: "What's the point of studying English.", alternative: "", history: [] },
+        { id: 100, title: "It's 形容詞 how 文 (中上級10)", japanese: "人生ってこんなに色々と変わっていくの面白いよね。", english: "It's interesting how life changes so quickly.", alternative: "", history: [] },
+        { id: 101, title: "It's 形容詞 how 文 (中上級10)", japanese: "私たち一回も会わなかったなんてなんか変な感じだね。", english: "It's strange how we never met before.", alternative: "", history: [] },
+        { id: 102, title: "It's 形容詞 how 文 (中上級10)", japanese: "これ一緒にやったことないって面白くない?", english: "Isn't it interesting how we haven't done this before ?", alternative: "", history: [] },
+        { id: 103, title: "be supposed to do (中上級11)", japanese: "ダイエットしてるはずなんだけどな。", english: "I'm supposed to be on a diet.", alternative: "", history: [] },
+        { id: 104, title: "be supposed to do (中上級11)", japanese: "ダイエットしてるはずなんだけど、このケーキ美味しすぎる。", english: "I'm supposed to be on a diet, but these cakes are amazing.", alternative: "", history: [] },
+        { id: 105, title: "be supposed to do (中上級11)", japanese: "私は何をすべきでしょうか?", english: "What am I supposed to be doing here?", alternative: "", history: [] },
+        { id: 106, title: "The reason I do sth is... (中上級12)", japanese: "色々なバックグラウンドの人とコミュニケーションを取りたいから英語の勉強をしている。", english: "The reason I study English is to be able to communicate with people from all different backgrounds.", alternative: "", history: [] },
+        { id: 107, title: "The reason I do sth is... (中上級12)", japanese: "彼女のことが好きなのは、めちゃくちゃ知的だからなんだよね。", english: "The reason I like her is because she's very intelligent.", alternative: "", history: [] },
+        { id: 108, title: "the more the more 文 (中上級13)", japanese: "聞けば聞くほど、勉強になる。", english: "The more you listen, the more you learn.", alternative: "", history: [] },
+        { id: 109, title: "the more the more 文 (中上級13)", japanese: "練習すればするほど、上手くなる。", english: "The more you practice, the better you get.", alternative: "", history: [] },
+        { id: 110, title: "the more the more 文 (中上級13)", japanese: "多ければ多いほどいい。", english: "The more, the better.", alternative: "", history: [] },
+        { id: 111, title: "the more the more 文 (中上級13)", japanese: "大勢の方が楽しい。", english: "The more, the merrier.", alternative: "", history: [] },
+        { id: 112, title: "It's just that 文 (中上級14)", japanese: "あぁ、ただ疲れてるだけだよ。", english: "Oh, it's just that I'm tired.", alternative: "", history: [] },
+        { id: 113, title: "It's just that 文 (中上級14)", japanese: "ただ忙しかっただけだよ。", english: "It's just that I was busy.", alternative: "", history: [] },
+        { id: 114, title: "I'll probably do (中上級15)", japanese: "きっと間に合うと思う。", english: "I'll probably be able to make it.", alternative: "", history: [] },
+        { id: 115, title: "I'll probably do (中上級15)", japanese: "多分家でゆっくりする。", english: "I'll probably just stay at home and chill.", alternative: "", history: [] },
+        { id: 116, title: "I'll probably do (中上級15)", japanese: "多分ただスーパーに行くくらいで他には特に予定ないよ。", english: "I'll probably just go to the supermarket but that's it.", alternative: "", history: [] },
+        { id: 117, title: "it's not that 文 (中上級16)", japanese: "勉強が嫌いという訳ではないんだよ。今日はただ勉強したくなかっただけ。", english: "It's not that I hate studying It's just that I didn't want to study today.", alternative: "", history: [] },
+        { id: 118, title: "it's not that 文 (中上級16)", japanese: "コーヒーを飲まない訳ではないんだけど今日はお茶を飲みたかったんだよね。", english: "It's not that I don't drink coffee I just wanted to drink tea today.", alternative: "", history: [] },
+        { id: 119, title: "it's not that 文 (中上級16)", japanese: "アレルギーがある訳ではないんだけど匂いが好きじゃないんだよね。", english: "It's not that I'm allergic to it. I just don't like the smell of it.", alternative: "", history: [] },
+        { id: 120, title: "without doing (中上級17)", japanese: "彼って笑わせようとしてなくても面白いよね。", english: "He's funny without even trying.", alternative: "", history: [] },
+        { id: 121, title: "without doing (中上級17)", japanese: "コーヒーを飲まずに1日を始めるなんて無理だよ。", english: "I can't start my day without drinking coffee.", alternative: "", history: [] },
+        { id: 122, title: "without doing (中上級17)", japanese: "さよならを言わずに彼は行ってしまった。", english: "He left without saying goodbye.", alternative: "", history: [] },
+        { id: 123, title: "It's said that (中上級18)", japanese: "全てのことは理由があって起きると言われている。", english: "It's said that everything happens for a reason.", alternative: "", history: [] },
+        { id: 124, title: "It's said that (中上級18)", japanese: "Atuseigo が YouTube 上で一番良いチャンネルだと言われている。", english: "It's said that Atsueigo is the best channel on YouTube.", alternative: "", history: [] },
+        { id: 125, title: "If I were to do, I would do (中上級19)", japanese: "もし今年旅行するとしたら、パリに行くだろうな。", english: "If I were to travel this year, I would go to Paris.", alternative: "", history: [] },
+        { id: 126, title: "If I were to do, I would do (中上級19)", japanese: "もし留学するとしたら、きっと2年間くらいになると思う。", english: "If I were to study abroad, it would be probably about two years.", alternative: "", history: [] },
+        { id: 127, title: "It's such a 形容詞 名詞 that 文 (中上級20)", japanese: "めちゃくちゃ暑い日だったから外出することができなかった。", english: "It was such a hot day that we couldn't go outside.", alternative: "", history: [] },
+        { id: 128, title: "It's such a 形容詞 名詞 that 文 (中上級20)", japanese: "めちゃくちゃ居心地良いカフェだから何時間でも過ごせるよ。", english: "It was such a cozy cafe that I could spend hours there.", alternative: "", history: [] },
+        { id: 129, title: "I'm at the stage where (中上級21)", japanese: "もう少し自分の人生について気をつけて考えないといけない段階にある。", english: "I'm at the stage where I need to think about my life more carefully.", alternative: "", history: [] },
+        { id: 130, title: "I'm at the stage where (中上級21)", japanese: "もっと経験を積まないといけない段階にある。", english: "I'm at the stage where I need to accumulate more experience.", alternative: "", history: [] },
+        { id: 131, title: "I'm at the stage where (中上級21)", japanese: "もっと真面目に英語を学ばないといけない段階にある。", english: "I'm at the stage where I need to study English more seriously.", alternative: "", history: [] },
+        { id: 132, title: "X is worth doing (中上級22)", japanese: "この本は読む価値がある。", english: "This book is worth reading.", alternative: "", history: [] },
+        { id: 133, title: "X is worth doing (中上級22)", japanese: "この動画は観る価値がある。", english: "This video is worth watching.", alternative: "", history: [] },
+        { id: 134, title: "What I like about X is Y (中上級23)", japanese: "日本の好きなところは美しい文化だよ。", english: "What I like about Japan is its beautiful culture.", alternative: "", history: [] },
+        { id: 135, title: "What I like about X is Y (中上級23)", japanese: "このチャンネルの好きなところは色々なことについて学べるところだよ。", english: "What I like about this channel is that I can learn a lot of things.", alternative: "", history: [] },
+        { id: 136, title: "X is like, 文 (中上級24)", japanese: "「なんでそんなに文句ばっかり言うの?」って彼は言ってたよ。", english: "He was like, \"Why do you complain so much ?\"", alternative: "", history: [] },
+        { id: 137, title: "X is like, 文 (中上級24)", japanese: "「なんで彼は口を閉じないんだよ」って感じだった。", english: "I was like, \" Why wouldn't he shut his mouth ?\"", alternative: "", history: [] },
+        { id: 138, title: "X is like, 文 (中上級24)", japanese: "彼、めちゃくちゃ質問してきたから「もう好きなことやれば?」って感じだった。", english: "He was asking me so many questions so I was like, \"Just do what ever you want.\"", alternative: "", history: [] },
+        { id: 139, title: "in which case 文 (中上級25)", japanese: "明日遅れるかもしれないからその場合、連絡するね。", english: "I might be late tomorrow, in which case I'll send you a message.", alternative: "", history: [] },
+        { id: 140, title: "in which case 文 (中上級25)", japanese: "彼は休暇中かもしれないからもしそうなったらジョンに連絡して。", english: "He might be on vacation, in which case just contact John.", alternative: "", history: [] },
+        { id: 141, title: "when it comes to 名詞/動名詞 (中上級26)", japanese: "コーヒーのことになると彼はエキスパートだよ。", english: "When it comes to coffee, he's an expert.", alternative: "", history: [] },
+        { id: 142, title: "when it comes to 名詞/動名詞 (中上級26)", japanese: "この街の交通量に関して言えば、悪夢だよ。", english: "When it comes to traffic in this city, it's a nightmare.", alternative: "", history: [] },
+        { id: 143, title: "when it comes to 名詞/動名詞 (中上級26)", japanese: "勉強に関して言えば、一貫してやり続けることが重要だよ。", english: "When it comes to studying, consistency is the key.", alternative: "", history: [] },
+        { id: 144, title: "with 名詞 状態 (中上級27)", japanese: "目閉じてでもこれできるよ。", english: "I can even do this with my eyes closed.", alternative: "", history: [] },
+        { id: 145, title: "with 名詞 状態 (中上級27)", japanese: "私の犬は舌を出した状態で寝てた。", english: "My dog was sleeping with his tongue hanging out.", alternative: "", history: [] },
+        { id: 146, title: "with 名詞 状態 (中上級27)", japanese: "両手が震えた状態でタイピングするのは難しい。", english: "It's so hard to type with my hands shaking.", alternative: "", history: [] },
+        { id: 147, title: "動詞 how 形容詞 名詞 is (中上級28)", japanese: "この街、どれだけ美しいか見てよ。", english: "Look how beautiful this city is.", alternative: "", history: [] },
+        { id: 148, title: "動詞 how 形容詞 名詞 is (中上級28)", japanese: "彼女、どれだけ美しいか見てよ。", english: "Look how beautiful she is.", alternative: "", history: [] },
+        { id: 149, title: "動詞 how 形容詞 名詞 is (中上級28)", japanese: "あのパーティーどれだけやばかったか覚えてる?", english: "Do you remember how crazy the party was?", alternative: "", history: [] },
+        { id: 150, title: "get to do (中上級29)", japanese: "今朝、新車を運転できた。", english: "This morning, I got to drive a new car.", alternative: "", history: [] },
+        { id: 151, title: "get to do (中上級29)", japanese: "仕事のせいで、昔ほど筋トレできてない。", english: "Because of work, I don't get to work out as much as I used to.", alternative: "", history: [] },
+        { id: 152, title: "get to do (中上級29)", japanese: "昨日、あの有名な俳優と話す機会があったんだよ。", english: "Yesterday, I got to talk with a famous actor.", alternative: "", history: [] },
+        { id: 153, title: "be going to have to do (中上級30)", japanese: "残念ながら、もう出てもらわないといけない。", english: "Unfortunately, you're going to have to leave now.", alternative: "", history: [] },
+        { id: 154, title: "be going to have to do (中上級30)", japanese: "きっとそれ払わないといけないだろうね。", english: "Yeah, probably, you're going to have to pay for it.", alternative: "", history: [] },
+        { id: 155, title: "be going to have to do (中上級30)", japanese: "そろそろ本気出して勉強しないといけないんだろうな。", english: "Probably, I'm going to have to knuckle down and study.", alternative: "", history: [] }
+    ];
+
+    // 新しい保存キー (syntax_phrases_v3) で初級＋中上級の全データを強制上書きします
+    let phrases = JSON.parse(localStorage.getItem('syntax_phrases_v3')) || defaultPhrases;
+
+    function renderCards() {
+        const container = document.getElementById('card-container');
+        container.innerHTML = '';
+
+        if (phrases.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#6b7280;">登録された構文がありません。</p>';
+            return;
+        }
+
+        phrases.forEach((phrase) => {
+            const count = phrase.history.length;
+            const isCleared = count > 0 ? 'cleared' : '';
+            const stampsHTML = phrase.history.map(date => `<span class="stamp">🔴 ${date}</span>`).join('');
+            const altHTML = phrase.alternative 
+                ? `<div class="alternative-text">💡 別の言い方: ${phrase.alternative}</div>` 
+                : '';
+
+            const card = document.createElement('div');
+            card.className = `card ${isCleared}`;
+
+            card.innerHTML = `
+                <div class="tag hidden" id="tag-${phrase.id}">${phrase.title}</div>
+                <div class="japanese">${phrase.japanese}</div>
+                
+                <div class="english-box hidden" id="english-${phrase.id}">
+                    <div>🗣️ 解答: ${phrase.english}</div>
+                    ${altHTML}
+                    
+                    <div class="edit-actions">
+                        <button class="btn-mini" onclick="editEnglish(${phrase.id})">✏️ 解答を編集</button>
+                        <button class="btn-mini" onclick="editAlternative(${phrase.id})">
+                            ${phrase.alternative ? '✏️ 別の言い方を編集' : '➕ 別の言い方を追加'}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="action-init-group" id="action-init-${phrase.id}">
+                    <button class="btn btn-warning btn-hint-layout" id="btn-hint-${phrase.id}" onclick="showHint(${phrase.id})">💡 ヒント</button>
+                    <button class="btn btn-primary btn-main-layout" onclick="showAnswer(${phrase.id})">👀 正解を表示する</button>
+                </div>
+                
+                <div class="action-group hidden" id="action-judge-${phrase.id}">
+                    <button class="btn btn-danger" onclick="judgeIncorrect(${phrase.id})">❌ 不正解</button>
+                    <button class="btn btn-success" onclick="judgeCorrect(${phrase.id})">⭕ できた！</button>
+                </div>
+
+                <div class="history-section">
+                    <div>クリア回数: <strong>${count}回</strong></div>
+                    <div class="history-list">${stampsHTML}</div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function showHint(id) {
+        document.getElementById(`tag-${id}`).classList.remove('hidden');
+        document.getElementById(`btn-hint-${id}`).classList.add('hidden');
+    }
+
+    function showAnswer(id) {
+        document.getElementById(`tag-${id}`).classList.remove('hidden');
+        document.getElementById(`english-${id}`).classList.remove('hidden');
+        document.getElementById(`action-init-${id}`).classList.add('hidden');
+        document.getElementById(`action-judge-${id}`).classList.remove('hidden');
+    }
+
+    function editEnglish(id) {
+        const target = phrases.find(p => p.id === id);
+        if (target) {
+            const newEnglish = prompt("「元々の解答」を修正してください：", target.english || "");
+            if (newEnglish !== null && newEnglish.trim() !== "") {
+                target.english = newEnglish.trim();
+                saveData();
+                renderCards();
+                showAnswer(id);
+            }
+        }
+    }
+
+    function editAlternative(id) {
+        const target = phrases.find(p => p.id === id);
+        if (target) {
+            const newAlt = prompt("「別の言い方」を入力・修正してください：", target.alternative || "");
+            if (newAlt !== null) {
+                target.alternative = newAlt.trim();
+                saveData();
+                renderCards();
+                showAnswer(id);
+            }
+        }
+    }
+
+    function judgeCorrect(id) {
+        const target = phrases.find(p => p.id === id);
+        if (target) {
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+            
+            target.history.push(dateStr);
+            saveData();
+            renderCards();
+        }
+    }
+
+    function judgeIncorrect(id) {
+        renderCards();
+    }
+
+    function saveData() {
+        localStorage.setItem('syntax_phrases_v3', JSON.stringify(phrases));
+    }
+
+    function addPhrase() {
+        const titleInput = document.getElementById('input-title');
+        const japaneseInput = document.getElementById('input-japanese');
+        const englishInput = document.getElementById('input-english');
+        const alternativeInput = document.getElementById('input-alternative');
+
+        if (!titleInput.value || !japaneseInput.value || !englishInput.value) {
+            alert('構文・日本語・解答は必須入力です！');
+            return;
+        }
+
+        const newPhrase = {
+            id: Date.now(),
+            title: titleInput.value,
+            japanese: japaneseInput.value,
+            english: englishInput.value,
+            alternative: alternativeInput.value.trim(),
+            history: []
+        };
+
+        phrases.push(newPhrase);
+        saveData();
+        renderCards();
+
+        titleInput.value = '';
+        japaneseInput.value = '';
+        englishInput.value = '';
+        alternativeInput.value = '';
+        titleInput.focus();
+    }
+
+    renderCards();
+</script>
+
+</body>
+</html>
