@@ -286,13 +286,14 @@
             font-weight: 500;
         }
 
-        /* 追加フォーム */
+        /* 各種フォーム用カード */
         .form-card {
             background: var(--card-bg);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-top: 30px;
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
         }
 
         .form-group {
@@ -314,6 +315,14 @@
             border-radius: 6px;
             font-size: 1rem;
         }
+
+        /* 📂 バックアップエリア用のレイアウト */
+        .backup-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -321,7 +330,6 @@
 <div class="container">
     <h1>⚡ 瞬間構文トレーニング</h1>
 
-    <!-- 🔍 絞り込みフィルターコントロール -->
     <div class="filter-card">
         <div class="filter-group">
             <span class="filter-label">📚 レベル・分類</span>
@@ -343,10 +351,8 @@
         <div class="count-summary" id="count-summary">表示中: 0 件</div>
     </div>
 
-    <!-- 構文カードを表示するエリア -->
     <div id="card-container"></div>
 
-    <!-- 手動追加フォーム -->
     <div class="form-card">
         <h3 style="margin-top:0; margin-bottom:12px; color:var(--text-color);">➕ 新しい構文を追加</h3>
         <div class="form-group">
@@ -366,6 +372,17 @@
             <input type="text" id="input-alternative" placeholder="別の表現があれば入力">
         </div>
         <button class="btn btn-primary" onclick="addPhrase()">アプリに保存する</button>
+    </div>
+
+    <div class="form-card">
+        <h3 style="margin-top:0; margin-bottom:4px; color:var(--text-color);">📂 PC・スマホ間のデータ同期</h3>
+        <p style="margin:0 0 12px 0; font-size:0.8rem; color:#6b7280; line-height:1.3;">
+            進捗データを暗号文字にしてやり取りします。データを読み込んでも、お互いに追加した問題や🔴スタンプは消えずに自動で「合体」します。
+        </p>
+        <div class="backup-buttons">
+            <button class="btn btn-warning" style="margin-bottom:0;" onclick="exportData()">📤 データを書き出す</button>
+            <button class="btn btn-success" style="margin-bottom:0;" onclick="importData()">📥 データを読み込んで合体</button>
+        </div>
     </div>
 </div>
 
@@ -452,8 +469,8 @@
         { id: 75, title: "what if 文 (中上級04)", japanese: "明日、雨降ったらどうする?", english: "What if it rains tomorrow?", alternative: "", history: [] },
         { id: 76, title: "what if 文 (中上級04)", japanese: "もし好きじゃなかったらどうする?", english: "What if they don't like it?", alternative: "", history: [] },
         { id: 77, title: "what if 文 (中上級04)", japanese: "もし利益がゼロだったらどうする?", english: "What if the profit was zero ?", alternative: "", history: [] },
-        { id: 78, title: "That's why 文 (中上級05)", japanese: "だからそれ嫌いなんだよ。", english: "That's why I don't like it.", alternative: "", history: [] },
-        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いなんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
+        { id: 78, title: "That's why 文 (中上級05)", japanese: "だからそれ嫌いんだよ。", english: "That's why I don't like it.", alternative: "", history: [] },
+        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
         { id: 80, title: "That's why 文 (中上級05)", japanese: "だから今英語の勉強をするのはすごく大事なんだよ。", english: "That's why it's very important to study English now.", alternative: "", history: [] },
         { id: 81, title: "It feels like (中上級06)", japanese: "何か起こりそうな気がする。", english: "It feels like something's going to happen.", alternative: "", history: [] },
         { id: 82, title: "It feels like (中上級06)", japanese: "雨が降りそうな気がする。", english: "It feels like it's going to rain.", alternative: "", history: [] },
@@ -547,7 +564,6 @@
             } else if (currentCategoryFilter === 'advanced') {
                 matchCategory = phrase.title.includes('中上級');
             } else if (currentCategoryFilter === 'custom') {
-                // デフォルト155個以外の自作項目（または「初級」「中上級」が含まれないもの）
                 matchCategory = phrase.id > 1000 || (!phrase.title.includes('初級') && !phrase.title.includes('中上級'));
             }
 
@@ -734,6 +750,61 @@
         englishInput.value = '';
         alternativeInput.value = '';
         titleInput.focus();
+    }
+
+    /* 📂 データの書き出し用 */
+    function exportData() {
+        const dataStr = JSON.stringify(phrases);
+        navigator.clipboard.writeText(dataStr).then(() => {
+            alert('現在のクリアデータをコピーしました！\nスマホやPCのLINEなどにペーストして送信してください。');
+        }).catch(() => {
+            prompt('コピーに失敗しました。以下の文字をすべて手動でコピーしてください：', dataStr);
+        });
+    }
+
+    /* 🧠 賢く「合体（マージ）」する最新のインポート機能 */
+    function importData() {
+        const inputStr = prompt('移行したいデータをここに貼り付けてください。\n（PCとスマホのデータを賢く合体させます。どちらの追加単語や🔴スタンプも消えません）');
+        if (inputStr !== null && inputStr.trim() !== "") {
+            try {
+                const incomingData = JSON.parse(inputStr);
+                if (Array.isArray(incomingData)) {
+                    
+                    // 1問ずつ中身をループして安全に融合させていきます
+                    incomingData.forEach(incomingPhrase => {
+                        // 既存のデータから同じIDの問題を探す
+                        const localPhrase = phrases.find(p => p.id === incomingPhrase.id);
+                        
+                        if (localPhrase) {
+                            // ① 同じ問題が見つかった場合：🔴スタンプの日付履歴を合体
+                            // PCの履歴とスマホの履歴を合体させて、重複する日付をきれいにカット（Setを使用）
+                            const combinedHistory = [...localPhrase.history, ...incomingPhrase.history];
+                            localPhrase.history = [...new Set(combinedHistory)];
+                            
+                            // 編集された解答や別解があれば、最新（文字が入っている方）にアップデート
+                            if (incomingPhrase.english && incomingPhrase.english !== incomingPhrase.english) {
+                                localPhrase.english = incomingPhrase.english;
+                            }
+                            if (incomingPhrase.alternative && !localPhrase.alternative) {
+                                localPhrase.alternative = incomingPhrase.alternative;
+                            }
+                        } else {
+                            // ② 存在しないIDの場合：別の端末で新しく手動追加された単語（AやB）
+                            // スマホ側のデータを消すことなく、後ろにそっと追加します
+                            phrases.push(incomingPhrase);
+                        }
+                    });
+                    
+                    saveData();
+                    alert('🎉 データの合体（マージ）に成功しました！\n双方の端末で追加した問題も、🔴スタンプも1つも消さずに綺麗に合体しました！');
+                    renderCards();
+                } else {
+                    alert('データの形式が正しくありません。');
+                }
+            } catch (e) {
+                alert('読み込みに失敗しました。コピーしたデータを正しく貼り付けてください。');
+            }
+        }
     }
 
     renderCards();
