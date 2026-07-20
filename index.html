@@ -10,6 +10,7 @@
             --success-color: #10b981;
             --danger-color: #ef4444;
             --warning-color: #f59e0b;
+            --ai-color: #10a37f; /* ChatGPTのエメラルドグリーン */
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
             --text-color: #1f2937;
@@ -176,10 +177,21 @@
             border-color: var(--primary-color);
         }
 
+        /* ChatGPTボタンの特別スタイル */
+        .btn-mini.btn-chatgpt {
+            border-color: var(--ai-color);
+            color: var(--ai-color);
+            font-weight: bold;
+        }
+        .btn-mini.btn-chatgpt:hover {
+            background: #f0fdfa;
+        }
+
         .edit-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-top: 8px;
+            flex-wrap: wrap;
         }
 
         .action-group {
@@ -277,7 +289,7 @@
 </div>
 
 <script>
-    // 💡 初級編(01〜30) ＋ 中上級編(01〜30) の全128例文を完全網羅！
+    // 初級編(01〜30) ＋ 中上級編(01〜30) の全128例文
     const defaultPhrases = [
         /* === 初級編 (01 - 30) === */
         { id: 1, title: "It's 形容詞 to do (初級01)", japanese: "毎日運動することは重要だ。", english: "It's important to exercise every day.", alternative: "", history: [] },
@@ -345,7 +357,7 @@
         { id: 63, title: "what 主語 動詞 (初級30)", japanese: "私が好きなのはこれです。", english: "What I like about it is this.", alternative: "", history: [] },
         { id: 64, title: "what 主語 動詞 (初級30)", japanese: "そういう意味じゃないよ。", english: "That's not what I mean.", alternative: "", history: [] },
 
-        /* === 💡中・上級編 (01 - 30) === */
+        /* === 中・上級編 (01 - 30) === */
         { id: 65, title: "you know how 文 (中上級01)", japanese: "ほら、彼っていつも幸せそうじゃん?", english: "You know how he seems really happy?", alternative: "", history: [] },
         { id: 66, title: "you know how 文 (中上級01)", japanese: "ほら、私っていつもこういうことに関して文句言ってるじゃん?", english: "You know how I'm always complaining about this kind of stuff ?", alternative: "", history: [] },
         { id: 67, title: "you know how 文 (中上級01)", japanese: "ほら、私ずっと新しいジャケットを探してるって言ってたじゃん?", english: "You know how I've been looking for a new jacket ?", alternative: "", history: [] },
@@ -360,7 +372,7 @@
         { id: 76, title: "what if 文 (中上級04)", japanese: "もし好きじゃなかったらどうする?", english: "What if they don't like it?", alternative: "", history: [] },
         { id: 77, title: "what if 文 (中上級04)", japanese: "もし利益がゼロだったらどうする?", english: "What if the profit was zero ?", alternative: "", history: [] },
         { id: 78, title: "That's why 文 (中上級05)", japanese: "だからそれ嫌いなんだよ。", english: "That's why I don't like it.", alternative: "", history: [] },
-        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
+        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いなんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
         { id: 80, title: "That's why 文 (中上級05)", japanese: "だから今英語の勉強をするのはすごく大事なんだよ。", english: "That's why it's very important to study English now.", alternative: "", history: [] },
         { id: 81, title: "It feels like (中上級06)", japanese: "何か起こりそうな気がする。", english: "It feels like something's going to happen.", alternative: "", history: [] },
         { id: 82, title: "It feels like (中上級06)", japanese: "雨が降りそうな気がする。", english: "It feels like it's going to rain.", alternative: "", history: [] },
@@ -433,7 +445,6 @@
         { id: 155, title: "be going to have to do (中上級30)", japanese: "そろそろ本気出して勉強しないといけないんだろうな。", english: "Probably, I'm going to have to knuckle down and study.", alternative: "", history: [] }
     ];
 
-    // 新しい保存キー (syntax_phrases_v3) で初級＋中上級の全データを強制上書きします
     let phrases = JSON.parse(localStorage.getItem('syntax_phrases_v3')) || defaultPhrases;
 
     function renderCards() {
@@ -469,6 +480,7 @@
                         <button class="btn-mini" onclick="editAlternative(${phrase.id})">
                             ${phrase.alternative ? '✏️ 別の言い方を編集' : '➕ 別の言い方を追加'}
                         </button>
+                        <button class="btn-mini btn-chatgpt" onclick="askChatGPT(${phrase.id})">🤖 ChatGPTに聞く</button>
                     </div>
                 </div>
 
@@ -501,6 +513,22 @@
         document.getElementById(`english-${id}`).classList.remove('hidden');
         document.getElementById(`action-init-${id}`).classList.add('hidden');
         document.getElementById(`action-judge-${id}`).classList.remove('hidden');
+    }
+
+    // 💡 質問内容を「ネイティブのリアルな使用感・口語・文語」に特化させた最強プロンプト
+    function askChatGPT(id) {
+        const target = phrases.find(p => p.id === id);
+        if (target) {
+            // ChatGPTに伝える命令書（プロンプト）の作成
+            const promptText = `以下の英語の例文について、英語ネイティブのリアルな視点から詳しく日本語で解説してください。\n\n【日本語】\n${target.japanese}\n\n【英語解答】\n${target.english}\n${target.alternative ? `【別の言い方】\n${target.alternative}\n` : ''}\n◆ 解説してほしいポイント：\n1. この表現はネイティブが日常会話で本当によく使う（自然な）表現ですか？リアルな使用頻度やニュアンスを教えてください。\n2. これは主に「口語（カジュアルな会話）」で使われますか？それとも「文語（書き言葉・メール・ニュース）」で使われる硬い表現ですか？\n3. もし、より一般的で自然な口語表現（実際の会話でよく使うフレーズ）があれば、合わせて教えてください。`;
+            
+            // クリップボードへのコピー（バックアップ）
+            navigator.clipboard.writeText(promptText).catch(() => {});
+            
+            // ChatGPTの自動起動（質問文をURLに載せて送信）
+            const chatGPTUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
+            window.open(chatGPTUrl, '_blank');
+        }
     }
 
     function editEnglish(id) {
