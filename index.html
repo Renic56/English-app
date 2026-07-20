@@ -38,7 +38,64 @@
             text-align: center;
             font-size: 1.5rem;
             color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        /* 🔍 フィルターエリアのスタイル */
+        .filter-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #6b7280;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .btn-filter {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #4b5563;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-filter.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+
+        .count-summary {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 8px;
+            font-weight: bold;
         }
 
         .card {
@@ -264,12 +321,36 @@
 <div class="container">
     <h1>⚡ 瞬間構文トレーニング</h1>
 
+    <!-- 🔍 絞り込みフィルターコントロール -->
+    <div class="filter-card">
+        <div class="filter-group">
+            <span class="filter-label">📚 レベル・分類</span>
+            <div class="filter-buttons">
+                <button class="btn-filter active" onclick="setCategoryFilter('all', this)">すべて</button>
+                <button class="btn-filter" onclick="setCategoryFilter('basic', this)">初級</button>
+                <button class="btn-filter" onclick="setCategoryFilter('advanced', this)">中上級</button>
+                <button class="btn-filter" onclick="setCategoryFilter('custom', this)">➕ 追加項目</button>
+            </div>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">🎯 クリア状態</span>
+            <div class="filter-buttons">
+                <button class="btn-filter active" onclick="setStatusFilter('all', this)">すべて</button>
+                <button class="btn-filter" onclick="setStatusFilter('uncleared', this)">❌ 未正解</button>
+                <button class="btn-filter" onclick="setStatusFilter('cleared', this)">⭕ 正解済み</button>
+            </div>
+        </div>
+        <div class="count-summary" id="count-summary">表示中: 0 件</div>
+    </div>
+
+    <!-- 構文カードを表示するエリア -->
     <div id="card-container"></div>
 
+    <!-- 手動追加フォーム -->
     <div class="form-card">
         <h3 style="margin-top:0; margin-bottom:12px; color:var(--text-color);">➕ 新しい構文を追加</h3>
         <div class="form-group">
-            <label>使われている構文 (例: find it [形容詞] to do)</label>
+            <label>構文・分類 (例: look forward to doing / 追加項目に入ります)</label>
             <input type="text" id="input-title" placeholder="構文を入力">
         </div>
         <div class="form-group">
@@ -447,16 +528,51 @@
 
     let phrases = JSON.parse(localStorage.getItem('syntax_phrases_v3')) || defaultPhrases;
 
+    // 🔍 フィルターの状態変数
+    let currentCategoryFilter = 'all'; // 'all', 'basic', 'advanced', 'custom'
+    let currentStatusFilter = 'all';   // 'all', 'uncleared', 'cleared'
+
     function renderCards() {
         const container = document.getElementById('card-container');
         container.innerHTML = '';
 
-        if (phrases.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#6b7280;">登録された構文がありません。</p>';
+        // 絞り込み条件の適用
+        const filteredPhrases = phrases.filter(phrase => {
+            // 分類フィルター
+            let matchCategory = false;
+            if (currentCategoryFilter === 'all') {
+                matchCategory = true;
+            } else if (currentCategoryFilter === 'basic') {
+                matchCategory = phrase.title.includes('初級');
+            } else if (currentCategoryFilter === 'advanced') {
+                matchCategory = phrase.title.includes('中上級');
+            } else if (currentCategoryFilter === 'custom') {
+                // デフォルト155個以外の自作項目（または「初級」「中上級」が含まれないもの）
+                matchCategory = phrase.id > 1000 || (!phrase.title.includes('初級') && !phrase.title.includes('中上級'));
+            }
+
+            // クリア状態フィルター
+            let matchStatus = false;
+            if (currentStatusFilter === 'all') {
+                matchStatus = true;
+            } else if (currentStatusFilter === 'cleared') {
+                matchStatus = phrase.history.length > 0;
+            } else if (currentStatusFilter === 'uncleared') {
+                matchStatus = phrase.history.length === 0;
+            }
+
+            return matchCategory && matchStatus;
+        });
+
+        // 件数サマリーの更新
+        document.getElementById('count-summary').innerText = `表示中: ${filteredPhrases.length} 件 / 全 ${phrases.length} 件`;
+
+        if (filteredPhrases.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#6b7280; padding:30px 0;">該当する問題がありません。</p>';
             return;
         }
 
-        phrases.forEach((phrase) => {
+        filteredPhrases.forEach((phrase) => {
             const count = phrase.history.length;
             const isCleared = count > 0 ? 'cleared' : '';
             const stampsHTML = phrase.history.map(date => `<span class="stamp">🔴 ${date}</span>`).join('');
@@ -503,6 +619,23 @@
         });
     }
 
+    // 🔍 フィルター切り替え用関数
+    function setCategoryFilter(category, btnElement) {
+        currentCategoryFilter = category;
+        const buttons = btnElement.parentElement.querySelectorAll('.btn-filter');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        renderCards();
+    }
+
+    function setStatusFilter(status, btnElement) {
+        currentStatusFilter = status;
+        const buttons = btnElement.parentElement.querySelectorAll('.btn-filter');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        renderCards();
+    }
+
     function showHint(id) {
         document.getElementById(`tag-${id}`).classList.remove('hidden');
         document.getElementById(`btn-hint-${id}`).classList.add('hidden');
@@ -515,17 +648,12 @@
         document.getElementById(`action-judge-${id}`).classList.remove('hidden');
     }
 
-    // 💡 質問内容を「ネイティブのリアルな使用感・口語・文語」に特化させた最強プロンプト
     function askChatGPT(id) {
         const target = phrases.find(p => p.id === id);
         if (target) {
-            // ChatGPTに伝える命令書（プロンプト）の作成
             const promptText = `以下の英語の例文について、英語ネイティブのリアルな視点から詳しく日本語で解説してください。\n\n【日本語】\n${target.japanese}\n\n【英語解答】\n${target.english}\n${target.alternative ? `【別の言い方】\n${target.alternative}\n` : ''}\n◆ 解説してほしいポイント：\n1. この表現はネイティブが日常会話で本当によく使う（自然な）表現ですか？リアルな使用頻度やニュアンスを教えてください。\n2. これは主に「口語（カジュアルな会話）」で使われますか？それとも「文語（書き言葉・メール・ニュース）」で使われる硬い表現ですか？\n3. もし、より一般的で自然な口語表現（実際の会話でよく使うフレーズ）があれば、合わせて教えてください。`;
             
-            // クリップボードへのコピー（バックアップ）
             navigator.clipboard.writeText(promptText).catch(() => {});
-            
-            // ChatGPTの自動起動（質問文をURLに載せて送信）
             const chatGPTUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
             window.open(chatGPTUrl, '_blank');
         }
