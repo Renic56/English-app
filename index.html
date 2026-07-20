@@ -316,7 +316,19 @@
             font-size: 1rem;
         }
 
-        /* 📂 バックアップエリア用のレイアウト */
+        /* 💾 データ共有テキストエリア用のスタイル */
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            background: #f8fafc;
+            resize: vertical;
+        }
+
         .backup-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -375,10 +387,16 @@
     </div>
 
     <div class="form-card">
-        <h3 style="margin-top:0; margin-bottom:4px; color:var(--text-color);">📂 PC・スマホ間のデータ同期</h3>
+        <h3 style="margin-top:0; margin-bottom:4px; color:var(--text-color);">📂 PC・スマホ間のデータ共有</h3>
         <p style="margin:0 0 12px 0; font-size:0.8rem; color:#6b7280; line-height:1.3;">
-            進捗データを暗号文字にしてやり取りします。データを読み込んでも、お互いに追加した問題や🔴スタンプは消えずに自動で「合体」します。
+            進捗データをやり取りします。書き出した文字をスマホのこの箱に貼り付けて合体ボタンを押してください。どちらのデータも消えずに自動合体します。
         </p>
+        
+        <div class="form-group">
+            <label>データ送信用・貼付用ボックス</label>
+            <textarea id="sync-textarea" rows="5" placeholder="【書き出す】を押すとここにデータが出ます。スマホから取り込む際も、ここにデータを貼り付けてください。"></textarea>
+        </div>
+
         <div class="backup-buttons">
             <button class="btn btn-warning" style="margin-bottom:0;" onclick="exportData()">📤 データを書き出す</button>
             <button class="btn btn-success" style="margin-bottom:0;" onclick="importData()">📥 データを読み込んで合体</button>
@@ -469,8 +487,8 @@
         { id: 75, title: "what if 文 (中上級04)", japanese: "明日、雨降ったらどうする?", english: "What if it rains tomorrow?", alternative: "", history: [] },
         { id: 76, title: "what if 文 (中上級04)", japanese: "もし好きじゃなかったらどうする?", english: "What if they don't like it?", alternative: "", history: [] },
         { id: 77, title: "what if 文 (中上級04)", japanese: "もし利益がゼロだったらどうする?", english: "What if the profit was zero ?", alternative: "", history: [] },
-        { id: 78, title: "That's why 文 (中上級05)", japanese: "だからそれ嫌いんだよ。", english: "That's why I don't like it.", alternative: "", history: [] },
-        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
+        { id: 78, title: "That's why 文 (中上級05)", japanese: "だからそれ嫌いなんだよ。", english: "That's why I don't like it.", alternative: "", history: [] },
+        { id: 79, title: "That's why 文 (中上級05)", japanese: "だからそのカフェめっちゃ嫌いなんだよ。", english: "That's why I really hate the cafe.", alternative: "", history: [] },
         { id: 80, title: "That's why 文 (中上級05)", japanese: "だから今英語の勉強をするのはすごく大事なんだよ。", english: "That's why it's very important to study English now.", alternative: "", history: [] },
         { id: 81, title: "It feels like (中上級06)", japanese: "何か起こりそうな気がする。", english: "It feels like something's going to happen.", alternative: "", history: [] },
         { id: 82, title: "It feels like (中上級06)", japanese: "雨が降りそうな気がする。", english: "It feels like it's going to rain.", alternative: "", history: [] },
@@ -752,58 +770,65 @@
         titleInput.focus();
     }
 
-    /* 📂 データの書き出し用 */
+    /* 📂 データの書き出し用（改良：画面内のテキストボックスにも直接表示） */
     function exportData() {
         const dataStr = JSON.stringify(phrases);
+        const textarea = document.getElementById('sync-textarea');
+        
+        textarea.value = dataStr; // 箱の中に文字を入れる
+        textarea.select(); // 自動で全選択状態にする
+        
         navigator.clipboard.writeText(dataStr).then(() => {
-            alert('現在のクリアデータをコピーしました！\nスマホやPCのLINEなどにペーストして送信してください。');
+            alert('🎉 成功！\nクリアデータをコピーし、下のボックスにも表示しました。\n\nスマホやPCのLINEなどにそのまま貼り付けて送信してください！');
         }).catch(() => {
-            prompt('コピーに失敗しました。以下の文字をすべて手動でコピーしてください：', dataStr);
+            alert('下のボックスに文字が出現しました。長押ししてすべて選択し、コピーしてください！');
         });
     }
 
-    /* 🧠 賢く「合体（マージ）」する最新のインポート機能 */
+    /* 🧠 賢く「合体（マージ）」する最新のインポート機能（改良：テキストボックスから安全に読み込み） */
     function importData() {
-        const inputStr = prompt('移行したいデータをここに貼り付けてください。\n（PCとスマホのデータを賢く合体させます。どちらの追加単語や🔴スタンプも消えません）');
-        if (inputStr !== null && inputStr.trim() !== "") {
-            try {
-                const incomingData = JSON.parse(inputStr);
-                if (Array.isArray(incomingData)) {
+        const textarea = document.getElementById('sync-textarea');
+        const inputStr = textarea.value; // 箱の中の文字を読み込む
+        
+        if (!inputStr || inputStr.trim() === "") {
+            alert('上のボックスに、移行したいデータを貼り付けてからボタンを押してください！');
+            return;
+        }
+
+        try {
+            const incomingData = JSON.parse(inputStr);
+            if (Array.isArray(incomingData)) {
+                
+                incomingData.forEach(incomingPhrase => {
+                    const localPhrase = phrases.find(p => p.id === incomingPhrase.id);
                     
-                    // 1問ずつ中身をループして安全に融合させていきます
-                    incomingData.forEach(incomingPhrase => {
-                        // 既存のデータから同じIDの問題を探す
-                        const localPhrase = phrases.find(p => p.id === incomingPhrase.id);
+                    if (localPhrase) {
+                        // 履歴（🔴スタンプ）の重複排除合体
+                        const combinedHistory = [...localPhrase.history, ...incomingPhrase.history];
+                        localPhrase.history = [...new Set(combinedHistory)];
                         
-                        if (localPhrase) {
-                            // ① 同じ問題が見つかった場合：🔴スタンプの日付履歴を合体
-                            // PCの履歴とスマホの履歴を合体させて、重複する日付をきれいにカット（Setを使用）
-                            const combinedHistory = [...localPhrase.history, ...incomingPhrase.history];
-                            localPhrase.history = [...new Set(combinedHistory)];
-                            
-                            // 編集された解答や別解があれば、最新（文字が入っている方）にアップデート
-                            if (incomingPhrase.english && incomingPhrase.english !== incomingPhrase.english) {
-                                localPhrase.english = incomingPhrase.english;
-                            }
-                            if (incomingPhrase.alternative && !localPhrase.alternative) {
-                                localPhrase.alternative = incomingPhrase.alternative;
-                            }
-                        } else {
-                            // ② 存在しないIDの場合：別の端末で新しく手動追加された単語（AやB）
-                            // スマホ側のデータを消すことなく、後ろにそっと追加します
-                            phrases.push(incomingPhrase);
+                        // 最新の文字情報を優先
+                        if (incomingPhrase.english && localPhrase.english !== incomingPhrase.english) {
+                            localPhrase.english = incomingPhrase.english;
                         }
-                    });
-                    
-                    saveData();
-                    alert('🎉 データの合体（マージ）に成功しました！\n双方の端末で追加した問題も、🔴スタンプも1つも消さずに綺麗に合体しました！');
-                    renderCards();
-                } else {
-                    alert('データの形式が正しくありません。');
-                }
-            } catch (e) {
-                alert('読み込みに失敗しました。コピーしたデータを正しく貼り付けてください。');
+                        if (incomingPhrase.alternative && !localPhrase.alternative) {
+                            localPhrase.alternative = incomingPhrase.alternative;
+                        }
+                    } else {
+                        // スマホにない自作追加項目はそのまま後ろにそっと合体
+                        phrases.push(incomingPhrase);
+                    }
+                });
+                
+                saveData();
+                alert('🎉 データの合体に成功しました！\nお互いの追加した問題も、🔴スタンプも1つも消さずに綺麗に融合しました！');
+                textarea.value = ''; // 終わったら箱をきれいにする
+                renderCards();
+            } else {
+                alert('データの形式が正しくありません。');
             }
+        } catch (e) {
+            alert('読み込みに失敗しました。コピーした長文データが途中で切れていないか確認し、もう一度正しく貼り付けてください。');
         }
     }
 
